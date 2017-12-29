@@ -1,7 +1,13 @@
 #lang racket
 
-(provide gen
+(provide my-print
+         gen
          while)
+
+
+(define (my-print x)
+  (displayln x)
+  x)
 
 
 (define (gen invariant done? step finish)
