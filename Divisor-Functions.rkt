@@ -1,11 +1,13 @@
 #lang racket
 
 (require "Loops.rkt"
-         "Prime-Factorization.rkt")
+         "Prime-Factorization.rkt"
+         "Euclidian-Algorithm.rkt")
 (provide e
-         tau
-         sigma
-         rho)
+         div-count
+         div-sum
+         div-product
+         totient)
 
 ;;***************************************************************
 ;; (e p n) returns the exponent the prime p is raised to in the
@@ -23,10 +25,10 @@
 
 
 ;;***************************************************************
-;; (tau n) returns the number of positive divisors of n
-;; tau: Nat -> Nat
+;; (div-count n) returns the number of positive divisors of n
+;; div-count: Nat -> Nat
 
-(define (tau n)
+(define (div-count n)
   (gen (list (pfact n) 1)
        (λ (x) (empty? (first x)))
        (λ (x) (list (rest (first x))
@@ -35,14 +37,14 @@
        (λ (x) (second x))))
 
 ;;***************************************************************
-;; (sigma n) returns the sum of all positive divisors of n
-;; sigma: Nat -> Nat
+;; (div-sum n) returns the sum of all positive divisors of n
+;; div-sum: Nat -> Nat
 
 (define (newterm p e)
   (/ (add1 (expt p (add1 e)))
      (add1 p)))
 
-(define (sigma n)
+(define (div-sum n)
   (gen (list (pfact n) 1)
        (λ (x) (not (empty? (first x))))  
        (λ (x) (list (rest (first x))
@@ -52,11 +54,43 @@
        (λ (x) (second x))))
 
 ;;***************************************************************
-;; (rho n) returns the product of all positive divisors of n
-;; rho: Nat -> Nat
+;; (div-product n) returns the product of all positive divisors of n
+;; div-product: Nat -> Nat
 
-(define (rho n)
-  (expt n (/ (tau n) 2)))
+(define (div-product n)
+  (expt n (/ (div-count n) 2)))
+
+
+;;***************************************************************
+;; (totient n) is the Euler-Totient function. Returns the number
+;;    of integers i between 1 and n such that gcd(i,n)=1.
+;; (inefficient
+;; phi: Nat -> Nat
+;; O(n^2)
+
+(define (totient n)
+  (gen (list 2 1)
+       (λ (x) (= (first x) n))
+       (λ (x) (if (= 1 (gcd n (first x)))
+                  (list (add1 (first x)) (add1 (second x)))
+                  (list (add1 (first x)) (second x))))
+       (λ (x) (second x))))
+                    
+
+;;***************************************************************
+;; (fast-totient pfact) returns the same as (totient n) where
+;;    pfact = (pfact n) (note: pfact requires totient)
+
+(define (fast-totient pfact)
+  (gen (cons 1 pfact)
+       (λ (x) (empty? (rest x)))
+       (λ (x) (cons (* (first x)
+                       (- (expt (first (second x))
+                                (second (second x)))
+                          (expt (first (second x))
+                                (sub1 (second (second x))))))
+                    (rest (rest x))))
+       (λ (x) (first x))))
 
 
 ;;***************************************************************
